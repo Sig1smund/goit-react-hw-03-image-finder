@@ -2,12 +2,14 @@ import { Component } from 'react'
 import SearchBar from './searchBar'
 import ImageGallery from './imageGallery'
 import ImageGalleryItem from './imageGalleryItem';
-// import fetcher from 'services/fetch';
+import fetcher from 'services/fetch';
+import Button from './button';
+import Loader from './loader';
+import Modal from './modal';
 import './styles.css';
 
-
-  const KEY = '25175728-94f0f247d27e4ed37775dc2a1';
-  const BASE_URL = 'https://pixabay.com/api';
+  // const KEY = '25175728-94f0f247d27e4ed37775dc2a1';
+  // const BASE_URL = 'https://pixabay.com/api';
 
 class App extends Component {
   state = {
@@ -15,13 +17,32 @@ class App extends Component {
     items: [],
     page: 1,
     spinner: false,
+    largeIMG: '',
+    tags: '',
+    modal: false
+  }
+
+  modalClickToggler = () => {
+    return this.setState(({ modal }) => ({
+      modal: !modal,
+    }))
+  }
+  
+  getLargeImgURL = (largeIMG, tags) => {
+    return this.setState({ largeIMG, tags, modal: true})
+  }
+
+  handleButtonCLick = () => {
+    this.setState(prevState => {
+    return {page:prevState.page+1}
+    })
   }
 
   handleFormSubmit = search => {
-    return this.setState({search})
+    return this.setState({ search, page: 1 });
   }
 
-  async componentDidUpdate(prevProps, prevState) {
+  componentDidUpdate(prevProps, prevState) {
     const prevSearch = prevState.search;
     const newSearch = this.state.search;
     const { search, page } = this.state;
@@ -38,21 +59,11 @@ class App extends Component {
         spinner: true,
       });
         
-      fetch(
-    `${BASE_URL}/?q=${search}&page=${page}&key=${KEY}&image_type=photo&orientation=horizontal&per_page=12`
-  ).then(response => {
-    if (response.ok) {
-      return response.json();
-    }
-    return Promise.reject(
-      new Error(`No results from searching by keyword ${search}`)
-    );
-  })
+      fetcher(search, page)
         .then((items) => {
-          if (items.hits.lenght === 0) {
+          if (items.hits.length === 0) {
             alert(`No images found by keyword ${search}`)
           }
-
           this.setState({ items: [...this.state.items, ...items.hits] })
         })
         .finally(() => { this.setState({ spinner: false }) })
@@ -60,13 +71,16 @@ class App extends Component {
   }
 
   render() {
-    const { items } = this.state;
+    const { items, spinner, largeIMG, modal, tags } = this.state;
     return (
       <>
         <SearchBar onSubmit={this.handleFormSubmit} />
         <ImageGallery>
-          <ImageGalleryItem data={items}/>
+          <ImageGalleryItem data={items} options={this.getLargeImgURL}/>
         </ImageGallery>
+        {items.length > 0 && <Button onClick={this.handleButtonCLick} />}
+        {spinner && <Loader />}
+        {modal && <Modal link={largeIMG} name={tags} onToggle={this.modalClickToggler} />}
       </>
   );
   }

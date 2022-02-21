@@ -1,3 +1,5 @@
+import propTypes from 'prop-types';
+
 export default async function fetcher(search, page) {
   const KEY = '25175728-94f0f247d27e4ed37775dc2a1';
   const BASE_URL = 'https://pixabay.com/api';
@@ -12,3 +14,8 @@ export default async function fetcher(search, page) {
     );
   });
 }
+
+fetcher.propTypes = {
+  search: propTypes.string,
+  page: propTypes.number,
+};
