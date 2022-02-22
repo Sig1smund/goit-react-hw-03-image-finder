@@ -19,7 +19,8 @@ class App extends Component {
     spinner: false,
     largeIMG: '',
     tags: '',
-    modal: false
+    modal: false,
+    hits: [],
   }
 
   modalClickToggler = () => {
@@ -64,21 +65,21 @@ class App extends Component {
           if (items.hits.length === 0) {
             alert(`No images found by keyword ${search}`)
           }
-          this.setState({ items: [...this.state.items, ...items.hits] })
+          this.setState({ items: [...this.state.items, ...items.hits], hits: items.hits })
         })
         .finally(() => { this.setState({ spinner: false }) })
     }
   }
 
   render() {
-    const { items, spinner, largeIMG, modal, tags } = this.state;
+    const { items, spinner, largeIMG, modal, tags, hits } = this.state;
     return (
       <>
         <SearchBar onSubmit={this.handleFormSubmit} />
         <ImageGallery>
           <ImageGalleryItem data={items} options={this.getLargeImgURL}/>
         </ImageGallery>
-        {items.length > 0 && <Button onClick={this.handleButtonCLick} />}
+        {(items.length > 0 && items.length === hits.length) && <Button onClick={this.handleButtonCLick} />}
         {spinner && <Loader />}
         {modal && <Modal link={largeIMG} name={tags} onToggle={this.modalClickToggler} />}
       </>
